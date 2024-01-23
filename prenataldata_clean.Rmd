@@ -1,0 +1,252 @@
+--- Prenatal Effect Size ---
+
+--Set WD--
+```{r}
+setwd('/Users/georgesba/Desktop/charts')
+```
+
+--Table Extraction of Sex differences... (Galjaard et al.) --
+
+```{r}
+library(pdftools)
+```
+
+```{r}
+gal<- pdf_text("tables/gal.pdf")
+gal
+```
+
+```{r}
+# Split the text into lines
+gal_lines <- unlist(strsplit(gal, "\n"))
+
+# Finding rows containing numeric values (assuming they have consistent patterns)
+gal_numeric_rows <- grepl("^\\d+\\s+", gal_lines)
+
+# Filter out the numeric rows
+gal_numeric_data <- gal_lines[gal_numeric_rows]
+
+# Joined the filtered rows back into a single string
+gal_filtered_text <- paste(gal_numeric_data, collapse = "\n")
+
+```
+
+```{r}
+gal_lines1 <- unlist(strsplit(gal_filtered_text, "\n"))
+
+# Split each line by spaces
+gal_split_lines <- lapply(gal_lines1, function(x) unlist(strsplit(x, "\\s+")))
+
+# Transpose the matrix to rearrange the data
+transposed_data <- t(do.call(cbind, gal_split_lines))
+
+# Convert transposed_data to a data frame, excluding the first row
+gal <- as.data.frame(transposed_data, stringsAsFactors = FALSE)
+
+# Set new column names
+columns <- c("GA(mm)","C5(mm)", "C10(mm)", "C50(mm)", "C90(mm)", "C95(mm)","C5(mm)", "C10(mm)", "C50(mm)", "C90(mm)", "C95(mm)")
+colnames(gal) <- columns
+gal
+```
+
+--- Estimated Fetal Weight (EFW)---
+```{r}
+gal_efw<- pdf_text("tables/gal_efw.pdf")
+gal_efw
+```
+```{r}
+# Split the string by newline character '\n' and remove empty elements
+efw_rows <- strsplit(gal_efw, "\n")[[1]]
+efw_rows <- efw_rows[efw_rows != ""]
+
+# Split each row by spaces and create a data frame
+table_data <- lapply(efw_rows, function(row) {
+  unlist(strsplit(row, "\\s+"))
+})
+
+# Convert the list to a data frame
+gal_efw <- as.data.frame(do.call(rbind, table_data))
+
+# Name columns
+colnames(gal_efw) <- c("GA (Weeks)(g)", "boys_C5(g)", "boys_C10(g)", "boys_C50(g)", "boys_C90(g)", "boys_C95", "girls_C5(g)", "girls_C10(g)", "girls_C50(g)", "girls_C90(g)", "girls_C95(g)")
+gal_efw
+```
+
+
+--Table Generation of Weight,length,and head (Keen et al.) --
+
+```{r}
+# Values for Gestation (Weeks)
+gestation_weeks <- 20:42
+
+# Creating the data frame
+keen <- data.frame(
+  gestationweeks = gestation_weeks,
+  no = c(49, 28, 20, 21, 24, 37, 51, 51, 85, 52, 89, 60, 101, 114, 156, 60, 60, 60, 120, 120, 120, 60, 60),
+  weight_both_g = c(340, 455, 508, 575, 676, 752, 909, 1083, 1126, 1285, 1433, 1547, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  weight_boys_g = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1894, 2020, 2177, 2588, 2640, 3047, 3350, 3527, 3726, 3584, 3788),
+  weight_girls_g = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1523, 1696, 1960, 2592, 2693, 2945, 3130, 3379, 3438, 3467, 3599),
+  weight_sd_both_g = c(54, 90, 97, 63, 115, 117, 155, 130, 227, 203, 404, 241, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  weight_sd_boys_g = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 423, 376, 431, 347, 298, 431, 422, 502, 341, 409, 429),
+  weight_sd_girls_g =  c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 320, 365, 329, 452, 467, 365, 394, 497, 334, 537, 483),
+  length_both_cm = c(26.4, 27, 29.6, 31.3, 31.3, 33.3, 33.8, 37.6, 37.2, 38.4, 41.4, 40.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  length_boys_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44.6, 44.7, 46.8, 47.1, 48.2, 50.4, 52.2, 51.9, 53.7, 53.2, 54.5),
+  length_girls_cm = c( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 41.3, 42.4, 45.8, 49.3, 47.5, 50.2, 51.1, 51.8, 52.7, 53.0, 53.2),
+  length_SD_both_cm = c(2.2, 0.8, 0.6, 2.4, 2.1, 2.1, 2.7, 2.3, 3.2, 2.6, 3.3, 4.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  length_SD_boys_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.5, 3.0, 4.3, 4.4, 2.2, 2.4, 2.3, 3.2, 2.3, 2.8, 3.6),
+  length_SD_girls_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.3, 4.0, 2.9, 1.6, 3.8, 3, 2.9, 1.8, 2.7, 2.5, 3.6),
+  head_circ_both_cm = c(18.6, 21, 27, 21.3, 22, 23.4, 24.2, 25.8, 26.3, 26.7, 28.4, 28.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  head_circ_boys_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30.5, 30.7, 32.1, 33.4, 33.2, 34.3, 35, 35.2, 35.6, 35.9, 35.5),
+  head_circ_girls_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29.6, 29.6, 31.1, 32.8, 33.1, 33.9, 34.0, 34.4, 34.7, 34.8, 35.2),
+  head_circsd_both_cm = c(0.5, 0.8, 1.1, 1.3, 1.5, 1.1, 1.4, 1.1, 1.4, 1.2, 3.1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+  head_circsd_boys_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.3, 1.3, 1.8, 1.2, 1.2, 0.9, 1.2, 1.4, 0.9, 1.2, 1.2),
+  head_circsd_girls_cm = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.3, 2.4, 1.2, 1.3, 1.4, 1.2, 1.5, 1.2, 1.2, 1.4, 1.2)
+)
+keen
+```
+
+--Table Extraction of Sex-specific... (Schwarzler et al.) --
+
+```{r}
+sch<- pdf_text("tables/sch.pdf")
+sch
+```
+
+```{r}
+# Split the text to remove footnote elements
+sch_split_text <- strsplit(sch, "\nTotal                                                 2466")[[1]]
+
+# Extract the section before footnote elements
+sch_cleaned_text <- sch_split_text[1]
+
+# Split the data into individual values and making a matrix
+sch_data_values <- strsplit(sch_cleaned_text, "\\s+")[[1]]
+sch_data_matrix <- matrix(sch_data_values, ncol = 8, byrow = TRUE)
+
+# Convert matrix into a data frame
+sch <- as.data.frame(sch_data_matrix)
+
+# Rename columns if needed
+colnames(sch) <- c("F_GA (Weeks)", "F_Mean (mm)", "F_SD (mm)", "F_Frequency (n)", "M_GA(Weeks)", "M_Mean (mm)", "M_SD (mm)", "M_Frequency (n)")
+sch
+```
+
+--Weight--
+```{r}
+sch_w<- pdf_text("tables/sch_w.pdf")
+sch_w
+```
+
+```{r}
+# Split the text by the specified title
+sch_w_split_text <- strsplit(sch_w, "\nTotal                                              2426")[[1]]
+
+# Extract beginning text
+sch_w_cleaned_text <- sch_w_split_text[1]
+sch_w_cleaned <- gsub("nelibrary\\.wiley\\.com/terms-and-conditions\\) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License", "", sch_w_cleaned_text)
+
+# Split the text into rows
+rows <- strsplit(sch_w_cleaned, "\n")[[1]]
+
+# Remove spaces and split each row into columns
+data_schw <- matrix(unlist(strsplit(trimws(rows), "\\s+")), ncol = 8, byrow = TRUE)
+sch_w <- as.data.frame(data_schw)
+
+# Set column names
+colnames(sch_w) <- c("F_GA (Weeks)", "F_Mean (mm)", "F_SD (mm)", "F_Frequency (n)", 
+                          "M_GA(Weeks)", "M_Mean (mm)", "M_SD (mm)", "M_Frequency (n)")
+
+# Display the resulting data (8 columns of 24 rows)
+sch_w
+```
+--Abdominal Circumference--
+```{r}
+gestation_weeks2 <- 15:39
+sch_ac <- data.frame(
+  gestationweeks = gestation_weeks2,
+  F_mean = c(97.29, 109.92, 118.79, 130.47, 144.48, 152.99, 162.81, 174.13, 183.07, 193.89, 205.52, 217.55, 228.05, 237.64, 248.44, 259.24, 272.32, 281.38, 291.45, 300.47, 308.44, 317.67, 324.31, 332.16, 344.59),
+  F_SD = c(5.89, 6.24, 6.32, 8.96, 9.12, 8.97, 9.08, 9.92, 10.97, 13.47, 10.26, 17.54, 17.29, 16.95, 17.28, 17.44, 16.90, 14.39, 19.07, 17.57, 21.59, 22.30, 20.84, 24.23, 20.69),
+  F_Frequency = c(9, 12, 24, 73, 77, 451, 221, 176, 53, 78, 35, 32, 39, 85, 40, 61, 70, 149, 110, 197, 111, 122, 108, 81, 48),
+  M_mean = c(97.59, 109.26, 121.71, 132.36, 146.50, 155.85, 165.49, 174.51, 188.72, 200.06, 212.87, 218.55, 234.12, 243.47, 255.34, 265.58, 273.23, 283.08, 293.82, 303.36, 311.96, 323.48, 328.48, 336.13, 340.66),
+  M_SD = c(4.43, 6.67, 5.31, 7.27, 9.45, 8.98, 9.58, 10.45, 10.25, 13.09, 9.86, 11.94, 15.94, 13.72, 16.61, 12.51, 16.96, 15.89, 18.75, 19.31, 22.68, 23.89, 25.16, 24.81, 21.02),
+  M_Frequency = c(9, 17, 18, 84, 65, 482, 258, 184, 51, 87, 42, 49, 40, 89, 65, 61, 81, 134, 109, 190, 119, 146, 102, 69, 53))
+sch_ac
+```
+
+
+--Gender Specific Ref... (Yeo et al.) --
+
+```{r}
+yeo <- "11+0–11+6                   55.93         63.07              70.20             54.43             61.56             68.70\n 12+0–12+6                   68.03         75.62              83.21             66.39             73.98             81.57\n 13+0–13+6                   80.21         88.26              96.30             78.45             86.49             94.53\n 14+0–14+6                               92.45         100.95             109.44            90.55             99.05             107.54\n 15+0–15+6                   104.70        113.65             122.60           102.67             111.62            120.57\n 16+0–16+6                               116.94        126.34             135.74           114.78            124.18             133.58\n 17+0–17+6                   129.11        138.97             148.82           126.82            136.67             146.53\n 18+0–18+6                   141.19        151.50             161.81           138.77            149.08             159.39\n 19+0–19+6                              153.15        163.91             174.67           150.59            161.35             172.12\n 20+0–20+6                   164.93        176.15             187.36           162.25            173.46             184.68\n 21+0–21+6                               176.52        188.19             199.85           173.70            185.37             197.04\n 22+0–22+6                   187.86        199.98             212.11           184.92            197.04             209.16\n 23+0–23+6                   198.94        211.51             224.08           195.86            208.43             221.01\n 24+0–24+6                               209.70        222.72             235.75           206.49            219.52             232.54\n 25+0–25+6                   220.11        233.59             247.07           216.77            230.25             243.73\n 26+0–26+6                   230.14        244.07             258.01           226.67            240.61             254.54\n 27+0–27+6                               239.75        254.14             268.52           236.15            250.54             264.92\n 28+0–28+6                   248.90        263.74             278.58           245.17            260.01             274.85\n 29+0–29+6                               257.57        272.86             288.15           253.70            269.00             284.29\n 30+0–30+6                   265.70        281.44             297.19           261.71            277.45             293.20\n 31+0–31+6                   273.27        289.47             305.66           269.14            285.34             301.54\n 32+0–32+6                   280.23        296.88             313.54           275.98            292.63             309.28\n 33+0–33+6                   286.56        303.67             320.77           282.18            299.28             316.39\n 34+0–34+6                               292.21        309.77             327.33           287.70            305.26             322.82\n 35+0–35+6                   297.16        315.17             333.18           292.51            310.52             328.53\n 36+0–36+6                   301.36        319.82             338.28           296.58            315.04             333.51\n 37+0–37+6                               304.77        323.69             342.61           299.86            318.78             337.70\n 38+0–38+6                   307.36        326.74             346.11           302.32            321.70             341.07\n 39+0–39+6                   309.10        328.93             348.75           303.93            323.76             343.58\n"
+```
+
+```{r}
+# Replace multiple spaces with a single space
+cleaned_text <- gsub("\\s+", ",", yeo)
+
+# Split the text into list
+yeo_list <- strsplit(cleaned_text, ",")
+
+# Remove empty elements and unlist data
+data_vector <- unlist(yeo_list[nchar(trimws(yeo_list)) > 0])
+
+# Make dataframe
+data_matrix <- matrix(data_vector, ncol = 7, byrow = TRUE)
+yeo <- as.data.frame(data_matrix)
+
+# Set column names
+colnames(yeo) <- c("Gestational Age", "3rd Centile_Male(mm)", "50th Centile_Male(mm)", "97th Centile_Male(mm)", "3rd Centile_Fenale(mm)", "50th Centile_Female(mm)", "97th Centile_Female(mm)")
+yeo
+```
+
+---Fetal Sex... (Melamed et al.) ---
+```{r}
+# Define functions for Equation 1 and Equation 2
+mean_hc_male <- function(X) {
+  result <- 2.21 * X^(-1) - 7.2 * X^(-0.05 ) - 0.0001 * X^(2) + 3.8
+  return(result)
+}
+
+mean_hc_fem <- function(X) {
+  result <- 121.3 * X^(-2) - 26 * X^(-1) - 0.0001 * X^(2) + 3.2
+  return(result)
+}
+
+sd_hc_male <- function(X) {
+  result <- -80.5 * X^(-1) + 11.6
+  return(result)
+}
+
+sd_hc_fem <- function(X) {
+  result <- -91.5 * X^(-1) + 11.8
+  return(result)
+}
+
+# Calculate Equation 1 and Equation 2 for specific X values
+X_value_1 <- 13  # Replace with your first X value
+
+
+result_equation_1 <- mean_hc_male(X_value_1)
+result_equation_2 <- mean_hc_fem(X_value_1)
+
+# Calculate the mean difference
+mean_difference <- mean(result_equation_1 - result_equation_2)
+
+print(mean_difference)
+```
+
+--- Export ---
+```{r}
+write.csv(gal, "gal.csv", row.names = FALSE)
+write.csv(gal_efw, "galefw.csv", row.names = FALSE)
+write.csv(keen, "keen.csv", row.names = FALSE)
+write.csv(sch, "sch.csv", row.names = FALSE)
+write.csv(sch_w, "sch_w.csv", row.names = FALSE)
+write.csv(yeo, "yeo.csv", row.names = FALSE)
+write.csv(sch_ac, "sch_ac.csv", row.names = FALSE)
+```
+
+```{r}
+write.csv(sch_ac, "sch_ac.csv", row.names = FALSE)
+```
+
