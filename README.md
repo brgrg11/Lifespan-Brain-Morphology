@@ -1,2 +1,2 @@
 # Lifespan Brain Morphology 
-An analysis of global brain and local body measures across the lifespan.
+An analysis of global brain and local body measures across the lifespan using sliding window approach.
